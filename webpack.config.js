@@ -7,7 +7,6 @@ const parts = require('./webpack.parts');
 
 const PATHS = {
   app: path.join(__dirname, 'app'),
-  reactDemo: path.join(__dirname, 'app', 'reactDemo'),
   build: path.join(__dirname, 'build'),
 };
 
@@ -118,28 +117,12 @@ module.exports = function(env) {
   
   const pages = [
     parts.page({
-      title: 'Webpack demo',
+      title: 'React demo',
       entry: {
-        app: PATHS.app,
+        app: env === 'production' ? PATHS.app :
+          ['react-hot-loader/patch', PATHS.app],
       },
       chunks: ['app', 'manifest', 'vendor'],
-    }),
-    parts.page({
-      title: 'Another demo',
-      path: 'another',
-      entry: {
-        another: path.join(PATHS.app, 'another.js'),
-      },
-      chunks: ['another', 'manifest', 'vendor'],
-    }),
-    parts.page({
-      title: 'React demo',
-      path: 'reactDemo',
-      entry: {
-        react: env === 'production' ? PATHS.reactDemo :
-          ['react-hot-loader/patch', PATHS.reactDemo],
-      },
-      chunks: ['react', 'manifest', 'vendor'],
     }),
   ];
   const config = env === 'production' ?
