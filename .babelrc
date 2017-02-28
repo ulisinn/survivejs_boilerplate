@@ -1,0 +1,27 @@
+{
+  "plugins": [
+    "syntax-dynamic-import"
+  ],
+  "presets": [
+    [
+      "es2015",
+      {
+        "modules": false
+      }
+    ],
+    "react"
+  ],
+  "env": {
+    "karma": {
+      "plugins": [
+        "istanbul"
+      ]
+    },
+    "development": {
+      "plugins": [
+        "react-hot-loader/babel"
+      ]
+    }
+  }
+}
+
