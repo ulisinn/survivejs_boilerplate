@@ -1,20 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Counter from './counter.jsx';
-import {AppContainer} from 'react-hot-loader';
+import {createStore} from 'redux';
+
+import {reducer} from './reducer';
+import {App} from './app';
 
 const app = document.createElement('div');
 document.body.appendChild(app);
 
-const render = App => {
-  ReactDOM.render(
-    <AppContainer><App /></AppContainer>,
-    app
-  );
-};
+// const store = createStore(reducer);
 
-render(Counter);
 
-if (module.hot) {
-  module.hot.accept('./counter', () => render(Counter));
-}
+/*
+ ReactDOM.render(<App store={store}/>,
+ app);
+ */
+
+
+ReactDOM.render(<App store={createStore(reducer)}/>,
+  app);
