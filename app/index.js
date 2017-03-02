@@ -1,21 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {createStore} from 'redux';
-
 import {reducer} from './reducer';
 import {App} from './app';
+import {Provider} from 'react-redux';
+
 
 const app = document.createElement('div');
 document.body.appendChild(app);
 
-// const store = createStore(reducer);
+console.log('test', app.id);
 
 
-/*
- ReactDOM.render(<App store={store}/>,
- app);
- */
-
-
-ReactDOM.render(<App store={createStore(reducer)}/>,
+ReactDOM.render(
+  <Provider store={createStore(reducer)}>
+    <App />
+  </Provider>,
   app);
+ 

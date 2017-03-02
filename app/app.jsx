@@ -1,13 +1,17 @@
 import React, { Component } from 'react';
-import { Stoplight } from './stoplight';
-import { Buttons } from './buttons';
+import { StoplightContainer } from './stoplight-container';
+import { ButtonContainer } from './button-container';
+import { createStore } from 'redux';
+import { reducer } from './reducer';
 
 export class App extends Component {
   render() {
+    const store = createStore(reducer);
+    
     return(
       <div>
-        <Stoplight store={this.props.store} />
-        <Buttons   store={this.props.store} />
+        <StoplightContainer store={store}/>
+        <ButtonContainer store={store}/>
       </div>
     )
   }
