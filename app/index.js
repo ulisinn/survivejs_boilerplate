@@ -9,9 +9,6 @@ import {Provider} from 'react-redux';
 const app = document.createElement('div');
 document.body.appendChild(app);
 
-console.log('test', app.id);
-
-
 ReactDOM.render(
   <Provider store={createStore(reducer)}>
     <App />
