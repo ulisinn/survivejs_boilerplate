@@ -3,11 +3,12 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const PurifyCSSPlugin = require('purifycss-webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const BabiliPlugin = require('babili-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const cssnano = require('cssnano');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-exports.devServer = function({ host, port } = {}) {
+exports.devServer = function ({ host, port } = {}) {
   return {
     devServer: {
       historyApiFallback: true,
@@ -26,7 +27,7 @@ exports.devServer = function({ host, port } = {}) {
   };
 };
 
-exports.lintJavaScript = function({ include, exclude, options }) {
+exports.lintJavaScript = function ({ include, exclude, options }) {
   return {
     module: {
       rules: [
@@ -35,7 +36,7 @@ exports.lintJavaScript = function({ include, exclude, options }) {
           include,
           exclude,
           enforce: 'pre',
-
+          
           loader: 'eslint-loader',
           options,
         },
@@ -44,36 +45,36 @@ exports.lintJavaScript = function({ include, exclude, options }) {
   };
 };
 
-exports.loadCSS = function({ include, exclude } = {}) {
+exports.loadCSS = function ({ include, exclude } = {}) {
   return {
     module: {
       rules: [
         {
-          test: /\.css$/,
+          test: /\.(css|scss)$/,
           include,
           exclude,
-
-          use: ['style-loader', 'css-loader'],
+          
+          use: ['style-loader', 'css-loader', 'sass-loader'],
         },
       ],
     },
   };
 };
 
-exports.extractCSS = function({ include, exclude, use }) {
+exports.extractCSS = function ({ include, exclude, use }) {
   // Output extracted CSS to a file
   const plugin = new ExtractTextPlugin({
-    filename: 'css/[name].[contenthash:8].css',
+    filename: 'styles/[name].[contenthash:8].css',
   });
-
+  
   return {
     module: {
       rules: [
         {
-          test: /\.css$/,
+          test: /\.(css|scss)$/,
           include,
           exclude,
-
+          
           use: plugin.extract({
             use,
             fallback: 'style-loader',
@@ -81,11 +82,11 @@ exports.extractCSS = function({ include, exclude, use }) {
         },
       ],
     },
-    plugins: [ plugin ],
+    plugins: [plugin],
   };
 };
 
-exports.autoprefix = function() {
+exports.autoprefix = function () {
   return {
     loader: 'postcss-loader',
     options: {
@@ -96,7 +97,7 @@ exports.autoprefix = function() {
   };
 };
 
-exports.purifyCSS = function({ paths }) {
+exports.purifyCSS = function ({ paths }) {
   return {
     plugins: [
       new PurifyCSSPlugin({ paths }),
@@ -104,7 +105,7 @@ exports.purifyCSS = function({ paths }) {
   };
 };
 
-exports.lintCSS = function({ include, exclude }) {
+exports.lintCSS = function ({ include, exclude }) {
   return {
     module: {
       rules: [
@@ -113,7 +114,7 @@ exports.lintCSS = function({ include, exclude }) {
           include,
           exclude,
           enforce: 'pre',
-
+          
           loader: 'postcss-loader',
           options: {
             plugins: () => ([
@@ -129,15 +130,15 @@ exports.lintCSS = function({ include, exclude }) {
   };
 };
 
-exports.loadImages = function({ include, exclude, options } = {}) {
+exports.loadImages = function ({ include, exclude, options } = {}) {
   return {
     module: {
       rules: [
         {
-          test: /\.(png|jpg)$/,
+          test: /\.(png|jpg|svg)$/,
           include,
           exclude,
-
+          
           use: {
             loader: 'url-loader',
             options,
@@ -148,18 +149,19 @@ exports.loadImages = function({ include, exclude, options } = {}) {
   };
 };
 
-exports.loadFonts = function({ include, exclude, options } = {}) {
+exports.loadFonts = function ({ include, exclude, options } = {}) {
   return {
     module: {
       rules: [
         {
-          // Capture eot, ttf, svg, woff, and woff2
-          test: /\.(woff2?|ttf|svg|eot)(\?v=\d+\.\d+\.\d+)?$/,
+          // Capture eot, ttf, woff, and woff2
+          test: /\.(eot|ttf|woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
           include,
           exclude,
-
+          
           use: {
-            loader: 'file-loader',
+            // loader: 'file-loader',
+            loader: 'url-loader?limit=20&name=assets/[name].[hash].[ext]',
             options,
           },
         },
@@ -168,29 +170,13 @@ exports.loadFonts = function({ include, exclude, options } = {}) {
   };
 };
 
-exports.ignore = function({ test, include, exclude }) {
-  return {
-    module: {
-      rules: [
-        {
-          test,
-          include,
-          exclude,
-
-          use: 'null-loader',
-        },
-      ],
-    },
-  };
-};
-
-exports.generateSourceMaps = function({ type }) {
+exports.generateSourceMaps = function ({ type }) {
   return {
     devtool: type,
   };
 };
 
-exports.extractBundles = function(bundles) {
+exports.extractBundles = function (bundles) {
   return {
     plugins: bundles.map((bundle) => (
       new webpack.optimize.CommonsChunkPlugin(bundle)
@@ -198,7 +184,7 @@ exports.extractBundles = function(bundles) {
   };
 };
 
-exports.loadJavaScript = function({ include, exclude }) {
+exports.loadJavaScript = function ({ include, exclude }) {
   return {
     module: {
       rules: [
@@ -206,7 +192,7 @@ exports.loadJavaScript = function({ include, exclude }) {
           test: /\.(js|jsx)$/,
           include,
           exclude,
-
+          
           loader: 'babel-loader',
           options: {
             // Enable caching for improved performance during
@@ -225,7 +211,8 @@ exports.loadJavaScript = function({ include, exclude }) {
   };
 };
 
-exports.clean = function(path) {
+
+exports.clean = function (path) {
   return {
     plugins: [
       new CleanWebpackPlugin([path]),
@@ -233,7 +220,7 @@ exports.clean = function(path) {
   };
 };
 
-exports.attachRevision = function() {
+exports.attachRevision = function () {
   return {
     plugins: [
       new webpack.BannerPlugin({
@@ -243,20 +230,15 @@ exports.attachRevision = function() {
   };
 };
 
-exports.minifyJavaScript = function({ useSourceMap }) {
+exports.minifyJavaScript = function () {
   return {
     plugins: [
-      new webpack.optimize.UglifyJsPlugin({
-        sourceMap: useSourceMap,
-        compress: {
-          warnings: false,
-        },
-      }),
+      new BabiliPlugin(),
     ],
   };
 };
 
-exports.minifyCSS = function({ options }) {
+exports.minifyCSS = function ({ options }) {
   return {
     plugins: [
       new OptimizeCSSAssetsPlugin({
@@ -267,10 +249,10 @@ exports.minifyCSS = function({ options }) {
   };
 };
 
-exports.setFreeVariable = function(key, value) {
+exports.setFreeVariable = function (key, value) {
   const env = {};
   env[key] = JSON.stringify(value);
-
+  
   return {
     plugins: [
       new webpack.DefinePlugin(env),
@@ -278,20 +260,21 @@ exports.setFreeVariable = function(key, value) {
   };
 };
 
-exports.page = function({
-  path = '',
-  template = require.resolve(
-    'html-webpack-plugin/default_index.ejs'
-  ),
-  title,
-  entry,
-  chunks,
-} = {}) {
+exports.page = function ({
+                           path = '',
+                           template = require.resolve(
+                             'html-webpack-plugin/default_index.ejs'
+                           ),
+                           title,
+                           entry,
+                           chunks,
+                         } = {}) {
   return {
     entry,
     plugins: [
       new HtmlWebpackPlugin({
         chunks,
+        mobile: true,
         filename: `${path && path + '/'}index.html`,
         template,
         title,
