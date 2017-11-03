@@ -1,3 +1,3 @@
-module.exports = function(a, b) {
-  return a + b;
-};
+// module.exports = (a, b) => a + b;
+
+export const add = ( a, b ) => (a + b);

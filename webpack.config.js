@@ -1,43 +1,56 @@
 const path = require('path');
 const webpack = require('webpack');
-const merge = require('webpack-merge');
 const glob = require('glob');
 
-const parts = require('./webpack.parts');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const merge = require('webpack-merge');
 
+const parts = require('./webpack.parts');
 const PATHS = {
   app: path.join(__dirname, 'app'),
-  reactDemo: path.join(__dirname, 'app', 'reactDemo'),
   build: path.join(__dirname, 'build'),
 };
 
+const PAGE_TITLE = 'My HTML PAGE';
+const USE_CSS_MODULES = false;
+//
+// COMMON
+//
 const commonConfig = merge([
   {
+    entry: {
+      app: PATHS.app,
+    },
     output: {
       path: PATHS.build,
       filename: '[name].js',
     },
+    plugins: [
+      new HtmlWebpackPlugin({ title: 'demo' }),
+    ],
   },
   parts.lintJavaScript({ include: PATHS.app }),
   parts.lintCSS({ include: PATHS.app }),
   parts.loadFonts({
     options: {
-      name: 'fonts/[name].[hash:8].[ext]',
+      // name: '[name].[hash:8].[ext]',
     },
   }),
-  parts.ignore({
-    test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-    include: /font-awesome/,
-  }),
   parts.loadJavaScript({ include: PATHS.app }),
+  // parts.loadTypeScript({ include: PATHS.app }),
+
 ]);
+
+//
+// PRODUCTION
+//
 
 const productionConfig = merge([
   {
     performance: {
       hints: 'warning', // 'error' or false are valid too
       maxEntrypointSize: 100000, // in bytes
-      maxAssetSize: 200000, // in bytes
+      maxAssetSize: 450000, // in bytes
     },
     output: {
       chunkFilename: '[name].[chunkhash:8].js',
@@ -46,25 +59,42 @@ const productionConfig = merge([
     plugins: [
       new webpack.HashedModuleIdsPlugin(),
     ],
-    recordsPath: 'records.json',
+    recordsPath: path.resolve(__dirname, './recordsPath.json'),
   },
   parts.clean(PATHS.build),
-  parts.minifyJavaScript({ useSourceMap: true }),
+  parts.minifyJavaScript(),
   parts.minifyCSS({
     options: {
       discardComments: {
         removeAll: true,
-        // Run cssnano in safe mode to avoid
-        // potentially unsafe ones.
         safe: true,
       },
     },
   }),
-  parts.attachRevision(),
+  parts.generateSourceMaps({ type: 'source-map' }),
+  parts.extractCSS({
+    use: [{
+      loader: 'css-loader',
+      options: {
+        modules: true,
+      },
+    }, 'sass-loader', parts.autoprefix()],
+
+  }),
+  parts.purifyCSS({
+    paths: glob.sync(`${PATHS.app}/**/*.js`, { nodir: true }),
+  }),
+  parts.lintCSS({ include: PATHS.app }),
+  parts.loadImages({
+    options: {
+      limit: 15000,
+      name: 'assets/[name].[hash:8].[ext]',
+    },
+  }),
   parts.extractBundles([
     {
       name: 'vendor',
-      minChunks: ({ resource }) => (
+      minChunks: ( { resource } ) => (
         resource &&
         resource.indexOf('node_modules') >= 0 &&
         resource.match(/\.js$/)
@@ -75,24 +105,15 @@ const productionConfig = merge([
       minChunks: Infinity,
     },
   ]),
-  parts.generateSourceMaps({ type: 'source-map' }),
-  parts.extractCSS({
-    use: ['css-loader', parts.autoprefix()],
-  }),
-  parts.purifyCSS({
-    paths: glob.sync(path.join(PATHS.app, '**', '*')),
-  }),
-  parts.loadImages({
-    options: {
-      limit: 15000,
-      name: 'images/[name].[hash:8].[ext]',
-    },
-  }),
   parts.setFreeVariable(
     'process.env.NODE_ENV',
-    'production'
+    'production',
   ),
 ]);
+
+//
+// DEVELOPMENT
+//
 
 const developmentConfig = merge([
   {
@@ -105,41 +126,29 @@ const developmentConfig = merge([
   },
   parts.generateSourceMaps({ type: 'cheap-module-eval-source-map' }),
   parts.devServer({
-    // Customize host/port here if needed
     host: process.env.HOST,
     port: process.env.PORT,
   }),
-  parts.loadCSS(),
+  parts.loadCSS({ include: PATHS.app }, USE_CSS_MODULES),
+  // parts.loadCssTypescript({include: PATHS.app}),
+
+  parts.loadFontAwesome({ exclude: PATHS.app }),
   parts.loadImages(),
 ]);
 
-module.exports = function(env) {
-  process.env.BABEL_ENV = env;
-  
+
+module.exports = ( env ) => {
+  console.log('env', env);
   const pages = [
     parts.page({
-      title: 'Webpack demo',
+      title: PAGE_TITLE,
+      mobile: false,
+      template: require.resolve('./template/default_index.ejs'),
       entry: {
-        app: PATHS.app,
+        app: env === 'production' ? PATHS.app :
+          [PATHS.app],
       },
       chunks: ['app', 'manifest', 'vendor'],
-    }),
-    parts.page({
-      title: 'Another demo',
-      path: 'another',
-      entry: {
-        another: path.join(PATHS.app, 'another.js'),
-      },
-      chunks: ['another', 'manifest', 'vendor'],
-    }),
-    parts.page({
-      title: 'React demo',
-      path: 'reactDemo',
-      entry: {
-        react: env === 'production' ? PATHS.reactDemo :
-          ['react-hot-loader/patch', PATHS.reactDemo],
-      },
-      chunks: ['react', 'manifest', 'vendor'],
     }),
   ];
   const config = env === 'production' ?

@@ -1,34 +1,27 @@
 const express = require('express');
-const { renderToString } = require('react-dom/server');
+const fs = require('fs');
+const cors = require('cors');
 
-const SSR = require('./static');
+const app = express();
+app.use(cors());
+app.use(express.static(__dirname));
+app.options('*', cors());
 
-server(process.env.PORT || 8080);
+app.get('/data', ( req, res ) => {
+  fs.readFile(`${__dirname}/data/data.json`, 'utf8', ( err, data ) => {
 
-function server(port) {
-  const app = express();
+    // Error handling - return an error
+    if (err) {
+      res.status(500).end();
+      return console.error(err);
+    }
+    let portfolio = JSON.parse(data);
+    res.status(200).send({ portfolio });
 
-  app.use(express.static('static'));
-  app.get('/', (req, res) => (
-    res.status(200).send(
-      renderMarkup(renderToString(SSR))
-    )
-  ));
+  });
+});
 
-  app.listen(port, () => process.send && process.send('online'));
-}
-
-function renderMarkup(html) {
-  return `<!DOCTYPE html>
-<html>
-  <head>
-    <title>Webpack SSR Demo</title>
-    <meta charset="utf-8" />
-  </head>
-  <body>
-    <div id="app">${html}</div>
-    <script src="./index.js"></script>
-    <script src="${process.env.BROWSER_REFRESH_URL}"></script>
-  </body>
-</html>`;
-}
+// start the app
+app.listen(3000, () => {
+  console.log('App listening on port: 3000');
+});
