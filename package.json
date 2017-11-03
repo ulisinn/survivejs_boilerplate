@@ -24,6 +24,7 @@
     "author": "",
     "license": "MIT",
     "devDependencies": {
+        "@storybook/addon-actions": "^3.2.14",
         "@storybook/addon-storyshots": "^3.2.14",
         "@storybook/react": "^3.2.14",
         "autoprefix": "^1.0.1",
@@ -38,6 +39,7 @@
         "babel-preset-react": "^6.24.1",
         "browser-refresh": "^1.7.2",
         "clean-webpack-plugin": "^0.1.17",
+        "cors": "^2.8.4",
         "css-loader": "^0.28.7",
         "cssnano": "^3.10.0",
         "eslint": "^4.9.0",
@@ -80,6 +82,12 @@
         "font-awesome": "^4.7.0",
         "purecss": "^1.0.0",
         "react": "^16.0.0",
-        "react-dom": "^16.0.0"
+        "react-dom": "^16.0.0",
+        "react-fa": "^5.0.0",
+        "react-redux": "^5.0.6",
+        "react-router": "^4.2.0",
+        "react-router-dom": "^4.2.2",
+        "redux": "^3.7.2",
+        "redux-thunk": "^2.2.0"
     }
 }
