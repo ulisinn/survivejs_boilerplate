@@ -316,6 +316,7 @@ exports.page = function ( {
                             title,
                             entry,
                             chunks,
+                            externals = [],
                           } = {} ) {
   return {
     entry,
@@ -330,6 +331,9 @@ exports.page = function ( {
         filename: `${path && path + '/'}index.html`,
         template,
         title,
+      }),
+      new HtmlWebpackExternalsPlugin({
+        externals: externals,
       }),
     ],
   };

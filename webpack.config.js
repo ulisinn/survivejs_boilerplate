@@ -139,6 +139,18 @@ const developmentConfig = merge([
 
 module.exports = ( env ) => {
   console.log('env', env);
+  const externals = [
+    {
+      module: 'TweenMax',
+      entry: 'https://s0.2mdn.net/ads/studio/cached_libs/tweenmax_1.20.0_d360d9a082ccc13b1a1a9b153f86b378_min.js',
+      global: 'TweenMax',
+    }, {
+      module: 'TimelineLite',
+      entry: 'https://s0.2mdn.net/ads/studio/cached_libs/timelinelite_1.20.0_69767b5d8acb5acac5f8545f23c35618_min.js',
+      global: 'TimelineLite',
+    },
+  ];
+
   const pages = [
     parts.page({
       title: PAGE_TITLE,
@@ -149,6 +161,7 @@ module.exports = ( env ) => {
           [PATHS.app],
       },
       chunks: ['app', 'manifest', 'vendor'],
+      externals: [],
     }),
   ];
   const config = env === 'production' ?
