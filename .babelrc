@@ -6,29 +6,14 @@
         [
             "env",
             {
-                "modules": false,
                 "targets": {
                     "browsers": [
-                        "IE 8"
+                        "last 2 versions",
+                        "ie >= 7"
                     ]
                 }
             }
         ],
-        "react",
-        "es2015"
-    ],
-    "env": {
-        "karma": {
-            "plugins": [
-                [
-                    "istanbul",
-                    {
-                        "exclude": [
-                            "tests/*.test.js"
-                        ]
-                    }
-                ]
-            ]
-        }
-    }
+        "react"
+    ]
 }

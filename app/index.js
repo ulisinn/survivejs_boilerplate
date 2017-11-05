@@ -1,25 +1,17 @@
-import 'react';
-import 'font-awesome/css/font-awesome.css';
+import './styles/main.scss';
 import 'purecss';
-import './main.css';
-import component from './component';
-import { bake } from './shake';
+import * as React from 'react';
+import { render } from 'react-dom';
+import Home from './component';
 
-bake();
+const rootElement = document.createElement('div');
+rootElement.className = 'root';
+const container = document.createElement('div');
+container.className = 'container';
+rootElement.appendChild(container);
+document.body.appendChild(rootElement);
 
-let demoComponent = component();
 
-document.body.appendChild(demoComponent);
-
-// HMR interface
-if(module.hot) {
-  // Capture hot update
-  module.hot.accept('./component', () => {
-    const nextComponent = component();
-
-    // Replace old content with the hot loaded one
-    document.body.replaceChild(nextComponent, demoComponent);
-
-    demoComponent = nextComponent;
-  });
-}
+render(<Home text={'hi!!!'}/>,
+  container,
+);

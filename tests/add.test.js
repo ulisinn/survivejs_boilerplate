@@ -1,10 +1,6 @@
-import { add } from './add';
-
 const assert = require('assert');
-// const add = require('./add');
+const add = require('./add');
 
-describe('Demo', () => {
-  it('should add correctly', () => {
-    assert.equal(add(1, 1), 2);
-  });
+test('adds 1 + 2 to equal 3', () => {
+  expect(add(1, 2)).toBe(3);
 });

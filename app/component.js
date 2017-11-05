@@ -1,15 +1,19 @@
-export default function (text = 'Hello world') {
-  const element = document.createElement('div');
+import * as React from 'react';
+import PropTypes from 'prop-types';
 
-  element.className = 'fa fa-hand-spock-o fa-1g';
-  element.innerHTML = text;
-  element.onclick = () => {
-    import('./lazy').then((lazy) => {
-      element.textContent = lazy.default;
-    }).catch((err) => {
-      console.error(err);
-    });
-  };
+const TweenMax = require('TweenMax');
+const Ease = require('Ease');
+const TimelineLite = require('TimelineLite');
 
-  return element;
-}
+
+const Home = ( { text = 'Hello world' } ) => {
+  console.log('has TweenMax:', TweenMax !== undefined, 'has Ease:', Ease !== undefined, 'has TimelineLite:', TimelineLite !== undefined);
+  return <p className={'ph3 b underline'}>{text}</p>;
+};
+
+export default Home;
+
+
+Home.propTypes = {
+  text: PropTypes.string,
+};

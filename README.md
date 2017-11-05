@@ -6,5 +6,3 @@ See [SurviveJS - Webpack](http://survivejs.com/webpack_react/introduction/) to l
 
 MIT.
 
-modified with file paths, added survivejs react demo
-

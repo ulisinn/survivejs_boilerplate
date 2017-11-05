@@ -1,79 +1,22 @@
-const webpack = require('webpack');
-
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const PurifyCSSPlugin = require('purifycss-webpack');
+const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const BabelMinifyWebpackPlugin = require('babel-minify-webpack-plugin');
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
+
+const BabelWebpackPlugin = require('babel-minify-webpack-plugin');
+
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const cssnano = require('cssnano');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin');
 
-// TYPESCRIPT
-
-exports.lintTypeScript = ( { include, exclude, options } ) => ({
-    module: {
-      rules: [
-        {
-          test: /\.(ts|tsx)$/,
-          include,
-          exclude,
-          enforce: 'pre',
-          loader: 'tslint-loader',
-          options,
-        },
-      ],
-    },
-  }
-);
-
-exports.loadTypeScript = ( { include, exclude } ) => ({
-    module: {
-      rules: [
-        {
-          test: /\.(ts|tsx|js|jsx)?$/,
-          include,
-          exclude,
-          loader: 'awesome-typescript-loader',
-        },
-      ],
-    },
-    resolve: {
-      extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js', '.jsx'],
-    },
-  }
-);
-
-
-exports.loadCssTypescript = ( { include, exclude } = {} ) => ({
-  module: {
-    rules: [
-      {
-        test: /\.(css|scss)$/,
-        include,
-        exclude,
-        use: ['style-loader',
-          {
-            loader: 'typings-for-css-modules-loader',
-            options: {
-              modules: true,
-              namedExport: true,
-            },
-          },
-          'sass-loader'],
-      },
-    ],
-  },
-});
-
-//typings-for-css-modules-loader
-
-// DEV-SERVER
 exports.devServer = ( { host, port } = {} ) => ({
   devServer: {
     historyApiFallback: true,
     stats: 'errors-only',
-    host,
-    port,
+    host, // Defaults to `localhost`
+    port, // Defaults to 8080
     overlay: {
       errors: true,
       warnings: true,
@@ -81,34 +24,17 @@ exports.devServer = ( { host, port } = {} ) => ({
   },
 });
 
-// LINT JS
 exports.lintJavaScript = ( { include, exclude, options } ) => ({
   module: {
     rules: [
       {
         test: /\.js$/,
+        include,
+        exclude,
         enforce: 'pre',
 
         loader: 'eslint-loader',
-        options: {
-          emitWarning: true,
-        },
-      },
-    ],
-  },
-});
-
-// LOAD CSS - DEV
-
-exports.loadFontAwesome = ( { include, exclude } = {} ) => ({
-  module: {
-    rules: [
-      {
-        test: /\.(css|scss)$/,
-        include,
-        exclude,
-
-        use: ['style-loader', 'css-loader', 'sass-loader'],
+        options,
       },
     ],
   },
@@ -133,8 +59,22 @@ exports.loadCSS = ( { include, exclude } = {}, useModules = false ) => ({
     ],
   },
 });
+// LOAD CSS - DEV
 
-// EXTRACT CSS - PROD
+exports.loadNodeModuleCSS = ( { include, exclude } = {} ) => ({
+  module: {
+    rules: [
+      {
+        test: /\.(css|scss)$/,
+        include,
+        exclude,
+
+        use: ['style-loader', 'css-loader', 'sass-loader'],
+      },
+    ],
+  },
+});
+
 exports.extractCSS = ( { include, exclude, use } ) => {
   const plugin = new ExtractTextPlugin({
     filename: '[name].[contenthash:8].css',
@@ -159,24 +99,21 @@ exports.extractCSS = ( { include, exclude, use } ) => {
   };
 };
 
-// AUTO PREFIX
 exports.autoprefix = () => ({
   loader: 'postcss-loader',
   options: {
     plugins: () => ([
-      require('autoprefixer'),
+      require('autoprefixer')(),
     ]),
   },
 });
 
-// PURIFY CSS
 exports.purifyCSS = ( { paths } ) => ({
   plugins: [
     new PurifyCSSPlugin({ paths }),
   ],
 });
 
-// LINT CSS
 exports.lintCSS = ( { include, exclude } ) => ({
   module: {
     rules: [
@@ -189,9 +126,7 @@ exports.lintCSS = ( { include, exclude } ) => ({
         loader: 'postcss-loader',
         options: {
           plugins: () => ([
-            require('stylelint')({
-              ignoreFiles: 'node_modules/**/*.css',
-            }),
+            require('stylelint')(),
           ]),
         },
       },
@@ -199,12 +134,11 @@ exports.lintCSS = ( { include, exclude } ) => ({
   },
 });
 
-// LOAD IMAGES
 exports.loadImages = ( { include, exclude, options } = {} ) => ({
   module: {
     rules: [
       {
-        test: /\.(png|jpg|svg|gif)$/,
+        test: /\.(png|jpg|svg)$/,
         include,
         exclude,
 
@@ -217,7 +151,6 @@ exports.loadImages = ( { include, exclude, options } = {} ) => ({
   },
 });
 
-// LOAD FONTS
 exports.loadFonts = ( { include, exclude, options } = {} ) => ({
   module: {
     rules: [
@@ -228,7 +161,7 @@ exports.loadFonts = ( { include, exclude, options } = {} ) => ({
         exclude,
 
         use: {
-          loader: 'url-loader?limit=20&name=assets/[name].[hash].[ext]',
+          loader: 'file-loader',
           options,
         },
       },
@@ -236,54 +169,58 @@ exports.loadFonts = ( { include, exclude, options } = {} ) => ({
   },
 });
 
-// LOAD JAVASCRIPT
 exports.loadJavaScript = ( { include, exclude } ) => ({
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.js$/,
         include,
         exclude,
 
         loader: 'babel-loader',
         options: {
+          // Enable caching for improved performance during
+          // development.
+          // It uses default OS directory by default. If you need
+          // something more custom, pass a path to it.
+          // I.e., { cacheDirectory: '<path>' }
           cacheDirectory: true,
         },
       },
     ],
   },
-  resolve: {
-    extensions: ['.js', '.jsx'],
-  },
 });
 
-// SOURCEMAPS
 exports.generateSourceMaps = ( { type } ) => ({
   devtool: type,
 });
 
-// EXTRACT BUNDLES
 exports.extractBundles = ( bundles ) => ({
   plugins: bundles.map(( bundle ) => (
     new webpack.optimize.CommonsChunkPlugin(bundle)
   )),
 });
 
-// CLEAN
-exports.clean = ( path ) => {
+exports.clean = ( path ) => ({
   plugins: [
     new CleanWebpackPlugin([path]),
-  ];
-};
-
-// MINIFY JS
-exports.minifyJavaScript = () => ({
-  plugins: [
-    new BabelMinifyWebpackPlugin(),
   ],
 });
 
-// MINIFY CSS
+exports.attachRevision = () => ({
+  plugins: [
+    new webpack.BannerPlugin({
+      banner: new GitRevisionPlugin().version(),
+    }),
+  ],
+});
+
+exports.minifyJavaScript = () => ({
+  plugins: [
+    new BabelWebpackPlugin(),
+  ],
+});
+
 exports.minifyCSS = ( { options } ) => ({
   plugins: [
     new OptimizeCSSAssetsPlugin({
@@ -294,7 +231,6 @@ exports.minifyCSS = ( { options } ) => ({
   ],
 });
 
-// SET FREE VARIABLE
 exports.setFreeVariable = ( key, value ) => {
   const env = {};
   env[key] = JSON.stringify(value);
@@ -306,8 +242,6 @@ exports.setFreeVariable = ( key, value ) => {
   };
 };
 
-// PAGE
-
 exports.page = function ( {
                             path = '',
                             template = require.resolve(
@@ -316,7 +250,6 @@ exports.page = function ( {
                             title,
                             entry,
                             chunks,
-                            externals = [],
                           } = {} ) {
   return {
     entry,
@@ -333,8 +266,35 @@ exports.page = function ( {
         title,
       }),
       new HtmlWebpackExternalsPlugin({
-        externals: externals,
+        externals: [
+          {
+            module: 'TweenMax',
+            entry: 'https://s0.2mdn.net/ads/studio/cached_libs/tweenmax_1.20.0_d360d9a082ccc13b1a1a9b153f86b378_min.js',
+            global: 'TweenMax',
+          },
+          {
+            module: 'Ease',
+            entry: 'https://s0.2mdn.net/ads/studio/cached_libs/easepack_1.20.0_f9d13d59407792e37168747225359927_min.js',
+            global: 'Ease',
+          },
+          {
+            module: 'TimelineLite',
+            entry: 'https://s0.2mdn.net/ads/studio/cached_libs/timelinelite_1.20.0_69767b5d8acb5acac5f8545f23c35618_min.js',
+            global: 'TimelineLite',
+          },
+          {
+            module: 'tachyons',
+            entry: 'https://cdnjs.cloudflare.com/ajax/libs/tachyons/4.9.0/tachyons.min.css',
+            global: 'tachyons',
+          },
+          {
+            module: 'font-awesome',
+            entry: 'https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css',
+            global: 'font-awesome',
+          },
+        ],
       }),
     ],
   };
 };
+
