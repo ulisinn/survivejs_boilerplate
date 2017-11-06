@@ -1,7 +1,15 @@
 {
     "plugins": [
         "syntax-dynamic-import",
-        "transform-object-rest-spread"
+        "transform-object-rest-spread",
+        "transform-runtime",
+        [
+            "transform-runtime",
+            {
+                "polyfill": false,
+                "regenerator": true
+            }
+        ]
     ],
     "presets": [
         [
